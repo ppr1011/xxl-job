@@ -22,6 +22,7 @@ import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.text.MessageFormat;
@@ -130,7 +131,7 @@ public class XxlJobServiceImpl implements XxlJobService {
         try {
             XxlJobDynamicScheduler.addJob(qz_name, qz_group, jobInfo.getJobCron());
             //XxlJobDynamicScheduler.pauseJob(qz_name, qz_group);
-            return ReturnT.SUCCESS;
+            return new ReturnT<String>(qz_name);
         } catch (SchedulerException e) {
             logger.error(e.getMessage(), e);
             try {
@@ -214,6 +215,19 @@ public class XxlJobServiceImpl implements XxlJobService {
 		return ReturnT.FAIL;
 	}
 
+	@Override
+	@Transactional(rollbackFor=Exception.class)       //事务回滚
+	public ReturnT<String> updateBatch(List<XxlJobInfo> list) throws Exception {
+		for(XxlJobInfo jobInfo:list) {
+			ReturnT<String> result = update(jobInfo);
+			if(result.getCode() == ReturnT.FAIL_CODE) {
+				String info = "异常回滚......出错Handler："+jobInfo.getExecutorHandler();
+				throw new Exception(info);
+			}
+		}
+		return ReturnT.SUCCESS;
+	}
+	
 	@Override
 	public ReturnT<String> remove(int id) {
 		XxlJobInfo xxlJobInfo = xxlJobInfoDao.loadById(id);

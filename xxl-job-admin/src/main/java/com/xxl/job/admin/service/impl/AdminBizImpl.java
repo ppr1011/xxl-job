@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -65,13 +66,26 @@ public class AdminBizImpl implements AdminBiz {
             XxlJobInfo xxlJobInfo = xxlJobInfoDao.loadById(log.getJobId());
             if (xxlJobInfo!=null && StringUtils.isNotBlank(xxlJobInfo.getChildJobId())) {
                 callbackMsg = "<br><br><span style=\"color:#00c0ef;\" > >>>>>>>>>>>"+ I18nUtil.getString("jobconf_trigger_child_run") +"<<<<<<<<<<< </span><br>";
-
+                
                 String[] childJobIds = xxlJobInfo.getChildJobId().split(",");
+                
+                /**
+                 * 修复v1.9.2一个子任务无法失败重试的BUG
+                 * author:chenguiqi
+                 */
+                List<Integer> childJobIdList = new ArrayList<Integer>(childJobIds.length);
+                for(String id:childJobIds) {
+                	childJobIdList.add(Integer.valueOf(id));
+                }
+                List<XxlJobInfo> xxlJobInfoList = xxlJobInfoDao.getJobsByChildJobId(childJobIdList);
+                /***********************/
+                
                 for (int i = 0; i < childJobIds.length; i++) {
                     int childJobId = (StringUtils.isNotBlank(childJobIds[i]) && StringUtils.isNumeric(childJobIds[i]))?Integer.valueOf(childJobIds[i]):-1;
                     if (childJobId > 0) {
-
-                        JobTriggerPoolHelper.trigger(childJobId, TriggerTypeEnum.PARENT, 0, null, null);
+                    	//*****************修改失败重试代码**************
+                        JobTriggerPoolHelper.trigger(childJobId, TriggerTypeEnum.PARENT, xxlJobInfoList.get(i).getExecutorFailRetryCount(), null, null);
+                        //*****************修改失败重试代码**************
                         ReturnT<String> triggerChildResult = ReturnT.SUCCESS;
 
                         // add msg

@@ -178,4 +178,15 @@
 		FROM XXL_JOB_QRTZ_TRIGGER_INFO
 	</select>
 
+	<select id="getJobsByChildJobId" parameterType="java.util.List" resultMap="XxlJobInfo">
+		SELECT * 
+		FROM XXL_JOB_QRTZ_TRIGGER_INFO AS t
+		WHERE t.id in 
+		<foreach collection="list" item="id" index="index"
+            open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+	</select>
+
+
 </mapper>

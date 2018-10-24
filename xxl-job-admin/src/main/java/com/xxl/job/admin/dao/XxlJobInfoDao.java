@@ -34,5 +34,7 @@ public interface XxlJobInfoDao {
 	public List<XxlJobInfo> getJobsByGroup(@Param("jobGroup") int jobGroup);
 
 	public int findAllCount();
+	
+	public List<XxlJobInfo> getJobsByChildJobId(List<Integer> childId);
 
 }

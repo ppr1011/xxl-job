@@ -5,6 +5,7 @@ import com.xxl.job.admin.core.model.XxlJobInfo;
 import com.xxl.job.core.biz.model.ReturnT;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -42,7 +43,9 @@ public interface XxlJobService {
 	 * @return
 	 */
 	public ReturnT<String> update(XxlJobInfo jobInfo);
-
+	
+	public ReturnT<String> updateBatch(List<XxlJobInfo> list) throws Exception;
+	
 	/**
 	 * remove job
 	 *
